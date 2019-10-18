@@ -1,0 +1,47 @@
+Part 1
+
+  1)  this program would be harder to write using processes instead of threads
+      because processes would not be able to access the shared memeory space
+      that threads can. The threads can all access the variables workperformed,
+      please_quit, and use_yield which would not be possible with processes.
+
+  2)  workperformed is used as a flag to check whether work has been performed
+      since the last time the string was checked during the wait_till_done func.
+
+  3)  fp is a function pointer. It must be a pointer to a function that returns
+      a void pointer and takes a void pointer as an argument.
+
+  Questions:
+
+  1)  if we detached any of the enzyme threads then we would not be able to
+      join them and retrieve the data on how many swaps they made.
+
+  2)  the program uses sched_yield to allow the other threads to complete their
+      work while there is nothing to do with the current thread. if it wasn't
+      used, then the threads would continue in a busy-waiting loop until they
+      timed out on the processor. The swapcount will always be identical because
+      we do not change the data on which the threads work on, but it will just
+      take longer.
+
+  3)  We do not include cancelled swaps in the swapcount for two reasons. first
+      off, if it was cancelled then it will have exited before it had the chance
+      to swap the values. Second, even if we wanted to, when we join the threads
+      we will not get any of the information returned to us and we will not
+      know if the swap would have happened or not (if we did the swap before the
+      exit).
+
+  4)  if a thread tries to join itself it will create an EDEADLK error. It would
+      in theory create a deadlock as it will wait for the joining thread to
+      terminate, but can't terminate until it terminates... however you get a
+      EDEADLOK instead.
+
+  5)  sleeper thread is implemented using the sleep function. it sets a limit
+      on how long we have to sort the string before it exits the process. It is
+      a thread that is created just to block for 5 seconds and then terminate
+      the process.
+
+  6)  we use PTHREAD_CANCEL_ASYNCHRONOUS so that we can cancel the thread at
+      any point, and not have to wait for a cancel point. this is to ensure
+      that when we call pthread_cancel() we terminate the thread right away.
+
+  7)  

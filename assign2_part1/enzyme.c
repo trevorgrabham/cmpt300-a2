@@ -12,20 +12,26 @@ void *run_enzyme(void *data) {
 	//2. initialize the swapcount to zero
 	thread_data->swapcount = 0;
 	//3. Set the cancel type to PTHREAD_CANCEL_ASYNCHRONOUS
-	
+	pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS);
 	//4. If the first letter of the string is a C then call pthread_cancel on this thread.
+	if(thread_data->string[0] == 'C'){
+		pthread_cancel(pthread_self());
+	}
 	//5. Create a while loop that only exits when please_quit is nonzero
-	while(!please_quit)
+	while(!(please_quit)){
 	//6. Within this loop: if the first character of the string has an ascii value greater than the second (s[0] >s[1]) then -
 	//Set workperformed=1, increment swapcount for this thread, then swap the two characters around
 	//If "use_yield" is nonzero then call pthread_yield at the end of the loop.
-	if(thread_data->string[0] > thread_data->string[1]){
-		char temp = thread_data->string[0];
-		thread_data->string[0] = thread_data->string[1];
-		thread_data->string[1] = temp;
-	}
-	if(!use_yield){
-		pthread_yield();
+		if(thread_data->string[0] > thread_data->string[1]){
+			workperformed=1;
+			thread_data->swapcount++;
+			char temp = thread_data->string[0];
+			thread_data->string[0] = thread_data->string[1];
+			thread_data->string[1] = temp;
+		}
+		if(use_yield){
+			pthread_yield();
+		}
 	}
 	//7. Return a pointer to the updated structure.
 	return thread_data;
@@ -53,7 +59,7 @@ int make_enzyme_threads(pthread_t * enzymes, char *string, void *(*fp)(void *)) 
 			i,strerror(rv));
 		exit(1);
 	    }
-	}  
+	}
 	return len-1;
 }
 
@@ -65,29 +71,29 @@ int make_enzyme_threads(pthread_t * enzymes, char *string, void *(*fp)(void *)) 
 int join_on_enzymes(pthread_t *threads, int n) {
 	int i;
 	int totalswapcount = 0;
-	int whatgoeshere=0; // just to make the code compile 
+	int whatgoeshere=0; // just to make the code compile
 	                    // you will need to edit the code below
 	for(i=0;i<n;i++) {
 	    void *status;
 	    int rv = pthread_join(threads[i],&status);
 
-        if(whatgoeshere) {
+        if(rv) {
 	    fprintf(stderr,"Can't join thread %d:%s.\n",i,strerror(rv));
 	    continue;
 	}
 
-	if ((void*)whatgoeshere == PTHREAD_CANCELED) {
+	if ((void*)status == PTHREAD_CANCELED) {
 	    continue;
 	} else if (status == NULL) {
 	    printf("Thread %d did not return anything\n",i);
 	    } else {
 	      printf("Thread %d exited normally: ",i);// Don't change this line
-	      int threadswapcount = whatgoeshere; 
+	      int threadswapcount = (*thread_info_t)status->swapcount;
 	      // Hint - you will need to cast something.
 	      printf("%d swaps.\n",threadswapcount); // Don't change this line
 	      totalswapcount += threadswapcount;// Don't change this line
 	    }
-	}	
+	}
 	return totalswapcount;
 }
 
@@ -99,7 +105,7 @@ void wait_till_done(char *string, int n) {
 	while(1) {
 	    sched_yield();
 	    workperformed=0;
-	    for(i=0;i<n;i++) 
+	    for(i=0;i<n;i++)
 	        if (string[i] > string[i+1]) {
 	            workperformed=1;
 	    	}
@@ -108,8 +114,8 @@ void wait_till_done(char *string, int n) {
 }
 
 void * sleeper_func(void *p) {
-	sleep( (int) p); 
-	// Actually this may return before p seconds because of signals. 
+	sleep( (int) p);
+	// Actually this may return before p seconds because of signals.
 	// See man sleep for more information
 	printf("sleeper func woke up - exiting the program\n");
 	exit(1);
@@ -128,11 +134,11 @@ int smp2_main(int argc, char **argv) {
 
 	please_quit = 0;
 	use_yield =1;
-	
+
 	printf("Creating threads...\n");
 	n = make_enzyme_threads(enzymes,string,run_enzyme);
 	printf("Done creating %d threads.\n",n);
-	
+
 	pthread_t sleeperid;
 	pthread_create(&sleeperid,NULL,sleeper_func,(void*)5);
 
@@ -142,9 +148,6 @@ int smp2_main(int argc, char **argv) {
 	totalswap = join_on_enzymes(enzymes, n);
 	printf("Total: %d swaps\n",totalswap);
 	printf("Sorted string: %s\n",string);
-	
+
 	exit(0);
 }
-
-
-
