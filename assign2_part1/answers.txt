@@ -44,4 +44,8 @@ Part 1
       any point, and not have to wait for a cancel point. this is to ensure
       that when we call pthread_cancel() we terminate the thread right away.
 
-  7)  
+  7)  The memory leak was due to the fact that we are passing a info into the
+      thread as a parameter, but since it was allocated on the heap, and we keep
+      passing in the same info object the threads keep overwriting themselves.
+      We had to allocate a new info object every time we created a thread so it
+      had to be done inside the for loop.
