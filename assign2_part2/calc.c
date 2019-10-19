@@ -2,7 +2,7 @@
 
 #include "calc.h"
 
-pthread_t adderThread;
+pthread_t adderThread;c
 pthread_t degrouperThread;
 pthread_t multiplierThread;
 pthread_t readerThread;
@@ -250,6 +250,8 @@ void *sentinel(void *arg)
 	}
   numberBuffer[0] = '\0';
   // does this stop after the first ;?
+
+   // numops>?????
 	// something missing?
     }
 }

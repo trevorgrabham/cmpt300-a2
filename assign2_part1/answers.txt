@@ -49,3 +49,54 @@ Part 1
       passing in the same info object the threads keep overwriting themselves.
       We had to allocate a new info object every time we created a thread so it
       had to be done inside the for loop.
+
+Part 2
+
+  1)  The most critical synchronization error that we could occur right now
+      would be trying to perform a strcpy onto the buffer while the buffer is
+      being read. For example, if we were trying to left shift the buffer in the
+      sentinel thread while we are trying to read a character that just got
+      overwritten in the addition or multiplication thread. we could end up with
+      any sort of undefined errors, the worst of which would give us wildy
+      incorrect output.
+
+  2)
+
+  3)  the data structures we would need to worry about is the buffer. it is the
+      only data that is shared between the threads.
+
+  4)  if we had a busy-wait within one of our critical sections we would cause
+      a deadlock, where the other threads would not be able to continue once
+      the bus-wait was initiated. Even if the loop included sched_yield, we
+      would still be left with a deadlock, as even though it allows the another
+      threads to run, they would still be stuck waiting for the lock.
+
+  5)  sometimes, having a non-blocking mutex lock allows the program to avoid
+      deadlocks. it also allows the program to do other useful work while it
+      is waiting to aquire a lock. for example, in a process that is
+      communicating with another process, we may want the reciever of the
+      message to be non-blocking so it can continue to do other work while
+      periodically checking for a message.
+
+  6)  yes, a mutex would be needed to ensure that we are free from race
+      conditions. There could be the possability that two threads try and update
+      the total at the same time, both grabbing the same starting value and only
+      the loser of the race adding their value to the total.
+
+  7)  because the critical sections are atomic, they will not respond to an
+      interupt so even on single processor machines it is best to keep them as
+      short as possible.
+
+  8)  spin-waiting without yielding is often inefficient because the thread will
+      spin-wait until its time is up in the processor. With a yield, it will
+      immediately allow the other threads to go, as long as the waiting thread
+      isn't of greater priority.
+
+  9)  spin-waiting without yielding would only be more efficient if the expected
+      wait for the lock was short enough that we would be better off just
+      waiting than having to reschedule and pass control back to the kernel.
+
+  10) to immitate a mutex, you should pass the value 1 to the semaphore. since
+      the value passed to the semaphore is used as the number of threads that
+      should be able to access it, if you were to supply a greater number you
+      would have a chance of multiple threads accessing the same data.
