@@ -3,6 +3,7 @@
 int please_quit;
 int use_yield;
 int workperformed;
+int oldtype;
 
 // The code each enzyme executes.
 void *run_enzyme(void *data) {
@@ -12,7 +13,7 @@ void *run_enzyme(void *data) {
 	//2. initialize the swapcount to zero
 	thread_data->swapcount = 0;
 	//3. Set the cancel type to PTHREAD_CANCEL_ASYNCHRONOUS
-	pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS);
+	pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS,&oldtype);
 	//4. If the first letter of the string is a C then call pthread_cancel on this thread.
 	if(thread_data->string[0] == 'C'){
 		pthread_cancel(pthread_self());
@@ -71,7 +72,6 @@ int make_enzyme_threads(pthread_t * enzymes, char *string, void *(*fp)(void *)) 
 int join_on_enzymes(pthread_t *threads, int n) {
 	int i;
 	int totalswapcount = 0;
-	int whatgoeshere=0; // just to make the code compile
 	                    // you will need to edit the code below
 	for(i=0;i<n;i++) {
 	    void *status;
@@ -88,7 +88,7 @@ int join_on_enzymes(pthread_t *threads, int n) {
 	    printf("Thread %d did not return anything\n",i);
 	    } else {
 	      printf("Thread %d exited normally: ",i);// Don't change this line
-	      int threadswapcount = (*thread_info_t)status->swapcount;
+	      int threadswapcount = ((thread_info_t*)status)->swapcount;
 	      // Hint - you will need to cast something.
 	      printf("%d swaps.\n",threadswapcount); // Don't change this line
 	      totalswapcount += threadswapcount;// Don't change this line

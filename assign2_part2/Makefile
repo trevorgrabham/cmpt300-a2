@@ -1,6 +1,6 @@
 CC = gcc
 CCOPTS = -Wall -c -g -ggdb
-LINKOPTS = -Wall -g -ggdb -lpthread
+LINKOPTS = -Wall -g -ggdb -pthread
 
 all: calc
 
@@ -22,6 +22,6 @@ test: calc
 
 clean:
 	rm -rf *.o calc calc.exe *~
-	
-pretty: 
+
+pretty:
 	indent *.c *.h -kr

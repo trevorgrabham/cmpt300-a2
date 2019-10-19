@@ -52,7 +52,7 @@ int timeToFinish()
 }
 
 /* Looks for an addition symbol "+" surrounded by two numbers, e.g. "5+6"
-   and, if found, adds the two numbers and replaces the addition subexpression 
+   and, if found, adds the two numbers and replaces the addition subexpression
    with the result ("(5+6)*8" becomes "(11)*8")--remember, you don't have
    to worry about associativity! */
 void *adder(void *arg)
@@ -62,7 +62,6 @@ void *adder(void *arg)
     int startOffset, remainderOffset;
     int i;
 
-    return NULL; /* remove this line */
 
     while (1) {
 	startOffset = remainderOffset = -1;
@@ -74,11 +73,69 @@ void *adder(void *arg)
 
 	/* storing this prevents having to recalculate it in the loop */
 	bufferlen = strlen(buffer);
+  char data;
+  int numberDetected = 0, additionDetected = 0;
+  int numberStart, numberEnd, numberLen;
+  char number[20], *total;
 
 	for (i = 0; i < bufferlen; i++) {
 	    // do we have value1 already?  If not, is this a "naked" number?
 	    // if we do, is the next character after it a '+'?
 	    // if so, is the next one a "naked" number?
+      data = buffer[i];
+      if(isdigit(data)){
+        if(numberDetected)
+          continue;
+        numberDetected = 1;
+        numberStart = i;
+        if(value1 == -1){
+          startOffset = i;
+        }
+        continue;
+      } else if(data == '+'){
+        if(numberDetected){
+          numberDetected = 0;
+          numberEnd = i;
+          strncpy(number, &buffer[numberStart], numberEnd-numberStart);
+          value1 = atoi(number);
+          numberStart = 0;
+          numberEnd = 0;
+          number[0] = '\0';
+        } else {
+          if(value1 != -1){
+            additionDetected = 1;
+          }
+        }
+      } else if(isspace(data)){
+        if(numberDetected){
+          numberDetected = 0;
+          numberEnd = i;
+          strncpy(number, &buffer[numberStart], numberEnd-numberStart);
+          if(value1 == -1){
+            value1 = atoi(number);
+          } else if(additionDetected){
+            value2 = atoi(number);
+            remainderOffset = i;
+          }
+          numberStart = 0;
+          numberEnd = 0;
+          number[0] = '\0';
+        }
+      } else {
+        if(numberDetected){
+          numberStart = 0;
+          numberEnd = 0;
+          numberDetected = 0;
+        }
+      }
+      if(value1 != -1 && value2 != -1 && additionDetected){
+        total = int2string(value1+value2, total);
+        numberLen = strlen(number);
+        strcpy(&buffer[startOffset+numberLen],&buffer[remainderOffset]);
+        strncpy(&buffer[startOffset],number,numberLen);
+        value1 = value2 = -1;
+        startOffset = remainderOffset = -1;
+      }
 
 	    // once we have value1, value2 and start and end offsets of the
 	    // expression in buffer, replace it with v1+v2
@@ -162,7 +219,6 @@ void *sentinel(void *arg)
     int bufferlen;
     int i;
 
-    return NULL; /* remove this line */
 
     while (1) {
 
@@ -192,7 +248,8 @@ void *sentinel(void *arg)
 		numberBuffer[i] = buffer[i];
 	    }
 	}
-
+  numberBuffer[0] = '\0';
+  // does this stop after the first ;?
 	// something missing?
     }
 }
@@ -258,7 +315,7 @@ int smp3_main(int argc, char **argv)
     pthread_detach(multiplierThread);
     pthread_detach(adderThread);
     pthread_detach(degrouperThread);
-    pthread_detach(sentinelThread);
+    pthread_join(sentinelThread,&arg);
     pthread_detach(readerThread);
 
     /* everything is finished, print out the number of operations performed */

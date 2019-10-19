@@ -184,7 +184,7 @@ int test_semaphore(int argc, char **argv)
  */
 int run_smp3_tests(int argc, char **argv)
 {
-    /* Tests can be invoked by matching their name or their suite name 
+    /* Tests can be invoked by matching their name or their suite name
        or 'all' */
     testentry_t tests[] = {
 	{"add", "suite1", test_add},
